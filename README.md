@@ -6,7 +6,7 @@ This toy is running on a [Feather M4][1], [PN532 NFC/RFID controller][2], [Speak
 [NeoPixels][4] and a recycled SD Card reader from an old radio. The [PN532][2] and SD Card reader
 share the same [SPI][12] bus, and is powered by a [3.7v 2200mAh][14] battery.
 
-The basic functionality is described in this[YouTube Video][5].
+The basic functionality is described in this [YouTube Playlist][5].
 
 ## Functionality
 
@@ -83,7 +83,7 @@ ramps is still TBD.
 [2]: https://www.adafruit.com/product/364
 [3]: https://www.adafruit.com/product/3885
 [4]: https://www.adafruit.com/product/1461?length=1
-[5]: https://youtu.be/ppjUW_MYzwA
+[5]: https://www.youtube.com/playlist?list=PL8L4p4mQPaKocCwQW5a3IMrlqHCrkkY_Y
 [6]: https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
 [7]: https://circuitpython.org/board/feather_m4_express/
 [8]: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice/releases
