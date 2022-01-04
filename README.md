@@ -54,7 +54,7 @@ Then store the WAV and TXT files on the SD card in this structure:
 
 ## 3D printing assets
 
-Available on [PrusaPrinters][16].
+All assets are available on [PrusaPrinters][16].
 
 ## Notes
 
@@ -83,7 +83,7 @@ ramps is still TBD.
 [2]: https://www.adafruit.com/product/364
 [3]: https://www.adafruit.com/product/3885
 [4]: https://www.adafruit.com/product/1461?length=1
-[5]: TBD
+[5]: https://youtu.be/ppjUW_MYzwA
 [6]: https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
 [7]: https://circuitpython.org/board/feather_m4_express/
 [8]: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice/releases
@@ -94,7 +94,7 @@ ramps is still TBD.
 [13]: https://codewith.mu/
 [14]: https://www.adafruit.com/product/1781
 [15]: https://circuitpython.readthedocs.io/en/latest/shared-bindings/audioio/index.html
-[16]: TBD
+[16]: https://www.prusaprinters.org/prints/112410-the-hive/files
 [17]: https://www.prusa3d.com/category/original-prusa-mini/
 [18]: https://en.wikipedia.org/wiki/Rhombic_dodecahedron
 [19]: https://www.autodesk.com/products/fusion-360/overview
