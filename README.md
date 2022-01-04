@@ -83,7 +83,7 @@ ramps is still TBD.
 [2]: https://www.adafruit.com/product/364
 [3]: https://www.adafruit.com/product/3885
 [4]: https://www.adafruit.com/product/1461?length=1
-[5]: https://www.youtube.com/playlist?list=PL8L4p4mQPaKocCwQW5a3IMrlqHCrkkY_Y
+[5]: https://www.youtube.com/watch?v=ppjUW_MYzwA&list=PL8L4p4mQPaKocCwQW5a3IMrlqHCrkkY_Y&index=1
 [6]: https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
 [7]: https://circuitpython.org/board/feather_m4_express/
 [8]: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice/releases
