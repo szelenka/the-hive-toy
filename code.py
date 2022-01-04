@@ -3,12 +3,14 @@ from os import listdir
 from collections import namedtuple
 from time import monotonic, sleep
 from random import choice
+from math import ceil
 from binascii import hexlify
 
 import board
 from busio import SPI
 from digitalio import DigitalInOut
 from storage import VfsFat, mount
+from analogio import AnalogIn
 from audioio import AudioOut
 from audiocore import WaveFile
 from audiomixer import Mixer
@@ -28,6 +30,7 @@ IDLE_REMINDER = ''
 IDLE_TIMEOUT = 60
 TURN_OFF_TIMEOUT = 300
 SLEEP_DURATION = 0.05
+VOLUME_LEVEL = 0.3
 
 # color helpers
 OFF = (0,0,0)
@@ -44,6 +47,7 @@ BROWN = (56,28,2)
 
 # define control pins
 PIN_AUDIO = board.A0
+VOLTAGE_MONITOR = AnalogIn(board.VOLTAGE_MONITOR)
 NUM_PIXELS = 12
 NUM_PIXELS_IN_STRIP = NUM_PIXELS // 2
 onboard_pixel = NeoPixel(board.A1, 1, brightness=0.3, auto_write=False)
@@ -62,7 +66,7 @@ class PlayAudio():
         self.audio_binary = None
         self.audio_spl = None
         self.start_time = 0.0
-    
+
     def __enter__(self, *args, **kwargs):
         self.audio = AudioOut(PIN_AUDIO)
         print(f"Playing: {self.filename}")
@@ -76,26 +80,29 @@ class PlayAudio():
             self.audio_spl = open(self.filename.replace('.wav', '.csv'), 'r').read().split(',')
         except OSError as ex:
             print(ex)
-        
+
         self.mixer = Mixer(
             voice_count=1, sample_rate=22050, channel_count=1, bits_per_sample=16, samples_signed=True
         )
 
         self.audio.play(self.mixer)
         self.mixer.voice[0].play(self.audio_binary)
-        self.mixer.voice[0].level = 0.35
+        self.mixer.voice[0].level = VOLUME_LEVEL
         self.start_time = monotonic()
-        
+
         return self
-        
+
     def __exit__(self, *args, **kwargs):
+        if not hasattr(self, 'mixer') or not hasattr(self, 'audio'):
+            return
+            
         print(f"Stopping: {self.filename}")
         if self.mixer.voice[0].playing:
             self.mixer.voice[0].stop()
 
         if self.audio.playing:
             self.audio.stop()
-            
+
         self.audio.deinit()
         self.mixer.deinit()
 
@@ -114,9 +121,9 @@ class PlayAudio():
             spl = self.audio_spl[index]
         except IndexError:
             spl = self.audio_spl[-1]
-            
+
         return float(spl)
-        
+
 
 def play_sound_and_wait(filename: str):
     with PlayAudio(filename=filename) as a:
@@ -203,8 +210,40 @@ def load_sounds(child_folder: str, parent_folder: str = 'animals'):
         return ret
     except OSError as e:
         print(f"Unable to locate directory: {directory}")
-    
+
     return []
+
+
+def get_voltage():
+    return (VOLTAGE_MONITOR.value * 3.3) / 65536 * 2
+
+
+def low_battery(sounds):
+    if round(get_voltage(), 2) >= 3.33:
+        return False
+
+    ts_last_sound = 0
+
+    for i in range(NUM_PIXELS_IN_STRIP):
+        pixel_brightness(0.3)
+
+    def race_leds():
+        for i in range(NUM_PIXELS_IN_STRIP):
+            reflect_pixel(i, OFF)
+            show_pixels()
+            sleep(0.1)
+            reflect_pixel(i, RED)
+            show_pixels()
+            sleep(0.1)
+
+    # loop until someone turns it off and charges the battern
+    while True:
+        race_leds()
+        if ts_last_sound < ceil(monotonic()) - 60:
+            ts_last_sound = ceil(monotonic())
+            with PlayAudio(filename=choice(sounds)) as a:
+                while a.playing:
+                    race_leds()
 
 
 def play_system_sound(filename: str):
@@ -215,10 +254,10 @@ def play_system_sound(filename: str):
                     break
                 for i in range(NUM_PIXELS_IN_STRIP):
                     rainbow_cycle(i, j)
-                    
+
                 show_pixels()
                 pixel_brightness(a.spl)
-                
+
         reset_pixels()
 
 
@@ -241,22 +280,22 @@ def found_animal(captured_animal: bytearray):
             for c in animal.colors:
                 if not a.playing:
                     break
-                    
+
                 if c.index is None:
                     for p in range(NUM_PIXELS_IN_STRIP):
                         reflect_pixel(p, c.rgb)
                 else:
                     for p in c.index:
                         reflect_pixel(p, c.rgb)
-                
+
                 pixel_brightness(a.spl)
                 show_pixels()
                 if a.playing:
                     sleep(c.duration if c.duration is not None else 0.01)
 
     reset_pixels()
-    
-    
+
+
 def pattern_walk(color1, color2 = OFF, pattern_size: int = 2, speed: float = 0.05, reverse: bool = False):
     all_idx = set(list(range(0, NUM_PIXELS_IN_STRIP)))
     gen_list = []
@@ -266,9 +305,9 @@ def pattern_walk(color1, color2 = OFF, pattern_size: int = 2, speed: float = 0.0
             Color(rgb=color1, duration=0, index=all_idx.difference(_list)),
             Color(rgb=color2, duration=speed, index=_list),
         ]
-    
+
     return gen_list
-    
+
 
 # Configuration
 zoo = {
@@ -302,19 +341,23 @@ reminder = load_sounds('reminder', 'system')
 play_system_sound(choice(power_on))
 
 ts_last_activity = monotonic()
+ts_prev_sec = ceil(ts_last_activity)
 while True:
     ts_now = monotonic()
+    if ts_prev_sec < ceil(ts_now) - 60:
+        ts_prev_sec = ceil(ts_now)
+        if low_battery(sounds=power_off) is True:
+            continue
+
+
     uid = pn532.read_passive_target(timeout=0.5)
     if uid is not None:
         # perform animal actions
         found_animal(captured_animal=uid)
         ts_last_activity = ts_now
-    elif ts_now - ts_last_activity > 0 and ( ts_now - ts_last_activity ) % IDLE_TIMEOUT == 0:
-        # randomly flash lights/play short sound
-        play_system_sound(filename=choice(reminder))
     elif ts_last_activity < ts_now - TURN_OFF_TIMEOUT :
         # issue reminder to turn the device off
-        play_system_sound(filename=choice(power_off))
+        play_system_sound(filename=choice(reminder))
         ts_last_activity = ts_now
 
     # cooldown period
