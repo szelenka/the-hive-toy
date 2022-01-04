@@ -24,6 +24,34 @@ For the code to run on the [Feather M4][1], you'll need to include these librari
 - [adafruit_sdcard][10]
 - [neopixel][11]
 
+## SD Card & Audio Files
+
+The audio files need to be formatted in a very particular format to play on the [Feather M4][1], this 
+guide for [converting sound files in Audacity][21].
+
+Then running the [prepare_audio_files.py](./prepare_audio_files.py) script will produce the resulting [SPL][6]
+values for that audio file, which will be used to brighten the LED when the matching WAV filename is played.
+
+Then store the WAV and TXT files on the SD card in this structure:
+```
+|- formatted/
+|  |- animals/
+|     |- bear/
+|        |- 01.wav
+|        |- 01.txt
+|        |- 02.wav
+|        |- 02.txt
+|        |- etc.
+|     |- etc./
+|  |- system/
+|     |- power_on/
+|        |- 01.wav
+|        |- 01.txt
+|        |- 02.wav
+|        |- 02.txt
+|     |- etc./
+```
+
 ## 3D printing assets
 
 Available on [PrusaPrinters][16].
@@ -71,3 +99,4 @@ ramps is still TBD.
 [18]: https://en.wikipedia.org/wiki/Rhombic_dodecahedron
 [19]: https://www.autodesk.com/products/fusion-360/overview
 [20]: https://www.blender.org/
+[21]: https://learn.adafruit.com/adafruit-wave-shield-audio-shield-for-arduino/check-your-files
